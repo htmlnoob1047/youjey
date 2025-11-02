@@ -19,6 +19,11 @@ html, body {margin: 0; padding: 0; width: 100%; height: 100%;}
 
 .add-webtoon-list-wrapper {overflow-y: auto; overflow-x: hidden; height: 300px; margin-bottom: 20px;}
 
+/* 검색 */
+.search-box-wrapper {width: 100%; height: 50px;}
+.search-box {width: 100%; height: 100%; display: grid; grid-template-columns: 5fr 0.1fr 1fr;}
+#search {outline: none;}
+
 /* 메인 콘텐츠 */
 .main {width: 100%; height: calc(100% - 75.8px); display: grid; grid-template-columns: 1fr 5fr;}
 .sidebar {width: 250px; height: 100%; border-right: 1px black solid; background-color: white; overflow-y: hidden; overflow-x: hidden;}

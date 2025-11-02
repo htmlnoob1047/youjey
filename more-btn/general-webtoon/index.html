@@ -178,5 +178,34 @@
     });
   });
   </script>
-</body>
+  <script>
+  document.querySelectorAll(".webtoon-content").forEach(item => {
+    item.addEventListener("click", () => {
+      const id = item.dataset.generalWebtoonId;
+      const stored = JSON.parse(localStorage.getItem("webtoonData") || "[]");
+
+      // id 찾기
+      const match = stored.find(w => w.id === id);
+
+      // 페이지 정보 수집
+      const name = item.querySelector(".webtoon-title")?.innerText.trim() || match?.name || "";
+      const writer = item.querySelector(".webtoon-writer")?.innerText.trim() || match?.writer || "";
+      const cover = item.querySelector(".webtoon-cover")?.getAttribute("src") || match?.cover || "";
+
+      // 피라미터
+      const params = new URLSearchParams({
+        id: id,
+        name: name,
+        writer: writer,
+        cover: cover,
+        tags: match?.tags || "",
+        chapters: match?.chapters || "",
+        type: "webtoon"
+      });
+
+      window.location.href = `../../content-preview/index.html?${params.toString()}`;
+    });
+  });
+  </script>
+  </body>
 </html>

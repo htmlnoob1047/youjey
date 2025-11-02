@@ -195,6 +195,14 @@
         </div>
         <!-- 메인 콘텐츠 -->
         <div class="main-content">
+          <!-- 검색 -->
+          <div class="search-box-wrapper">
+            <div class="search-box">
+              <input type="search" id="search" placeholder="작품 검색">
+              <div></div>
+              <button class="search-btn">검색</button>
+            </div>
+          </div>
           <div class="webtoon-content">
             <div class="webtoon-content-upper-menu">
               <span class="main-content-info">일반 웹툰</span>
@@ -294,7 +302,7 @@
                   <span class="general-webtoon-writer">슈리넬 / QRQ</span>
                 </div>
               </div>
-              <div class="general-webtoon-content" data-general-webtoon-id="slduclsWjfejfk">
+              <div class="general-webtoon-content" data-general-webtoon-id="slduclsWjfejfk" data-the-number-of-chapter="81">
                 <div class="webtoon-info">
                   <img src="webtoon-cover/니_여친_쩔더라.png" class="webtoon-cover">
                   <span class="general-webtoon-name">니 여친 쩔더라</span>
@@ -492,6 +500,24 @@
       <!---->
     </div>
   </div>
+  <script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const allWebtoons = [];
+
+    document.querySelectorAll(".general-webtoon-content").forEach(el => {
+      allWebtoons.push({
+        id: el.dataset.generalWebtoonId,
+        tags: el.dataset.webtoonTag || "",
+        chapters: el.dataset.theNumberOfChapter || "",
+        name: el.querySelector(".general-webtoon-name")?.innerText.trim() || "",
+        writer: el.querySelector(".general-webtoon-writer")?.innerText.trim() || "",
+        cover: el.querySelector(".webtoon-cover")?.getAttribute("src") || ""
+      });
+    });
+    // 로컬 스토리지 저장
+    localStorage.setItem("webtoonData", JSON.stringify(allWebtoons));
+  });
+  </script>
   <!-- 툴팁, 사이트 이동 스크립트 -->
   <script src="tooltip.js" type="text/javascript"></script>
   <!-- <script src="MoveSite.js" type="text/javascript"></script> -->
@@ -580,6 +606,138 @@
         setCookie("hidePopup", "true", 24);
       }
       popup.style.display = 'none'; // 팝업 숨기기
+    });
+  </script>
+  <!-- 작품 검색 -->
+   <script>
+    const searchInput = document.querySelector('#search');
+    const searchBtn = document.querySelector('.search-btn');
+    const mainContent = document.querySelector('.main');
+    const sidebar = document.querySelector('.sidebar');
+    const logo = document.querySelector('.logo');
+
+    searchBtn.addEventListener('click', handleSearch);
+    searchInput.addEventListener('keypress', e => { 
+      if(e.key === 'Enter') handleSearch(); 
+    });
+
+    function handleSearch() {
+      const query = searchInput.value.trim().toLowerCase();
+      if(!query){ 
+        alert('검색어를 입력해주세요!'); 
+        return; 
+      }
+
+      const allItems = document.querySelectorAll('.general-webtoon-content');
+      const results = [];
+      allItems.forEach(item => {
+        const name = item.querySelector('.general-webtoon-name')?.innerText.toLowerCase() || '';
+        const writer = item.querySelector('.general-webtoon-writer')?.innerText.toLowerCase() || '';
+        const tags = item.dataset.webtoonTag?.toLowerCase() || '';
+        if(name.includes(query) || writer.includes(query) || tags.includes(query)){
+          results.push({
+            id: item.dataset.generalWebtoonId, // id 포함
+            title: item.querySelector('.general-webtoon-name')?.innerText,
+            writer: item.querySelector('.general-webtoon-writer')?.innerText,
+            img: item.querySelector('img')?.src,
+            tags: item.dataset.webtoonTag || '',
+            chapters: item.dataset.theNumberOfChapter || '',
+            type: item.querySelector('.novel-cover') ? 'novel' : 'webtoon'
+          });
+        }
+      });
+
+      showSearchResults(query, results);
+    }
+
+    function showSearchResults(query, results){
+      // 기존 검색 결과 제거
+      const existing = document.querySelector('.search-results-container');
+      if(existing) existing.remove();
+
+      // sidebar와 mainContent 숨김
+      sidebar.style.display='none';
+      mainContent.style.display='none';
+
+      const container = document.createElement('div');
+      container.className = 'search-results-container';
+      Object.assign(container.style,{
+        maxWidth:'1200px', margin:'60px auto', padding:'0 20px', fontFamily:'Noto Sans KR, sans-serif'
+      });
+
+      const title = document.createElement('h2');
+      title.innerText = `작품 검색 결과: "${query}"`;
+      Object.assign(title.style,{fontSize:'24px', fontWeight:'700', marginBottom:'30px'});
+      container.appendChild(title);
+
+      if(results.length === 0){
+        const none = document.createElement('p');
+        none.innerText='검색 결과가 없습니다.';
+        none.style.fontSize='18px';
+        container.appendChild(none);
+      } else {
+        const grid = document.createElement('div');
+        Object.assign(grid.style,{
+          display:'grid',
+          gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',
+          gap:'30px'
+        });
+
+        results.forEach(r => {
+          const card = document.createElement('div');
+          Object.assign(card.style, {
+            textAlign:'center', border:'1px solid #ddd', borderRadius:'12px', padding:'15px',
+            boxShadow:'0 2px 8px rgba(0,0,0,0.1)', backgroundColor:'#fff', transition:'transform 0.2s',
+            cursor:'pointer'
+          });
+          card.addEventListener('mouseenter',()=>card.style.transform='translateY(-5px)');
+          card.addEventListener('mouseleave',()=>card.style.transform='translateY(0)');
+
+          const img = document.createElement('img');
+          img.src = r.img;
+          Object.assign(img.style, {width:'100%', borderRadius:'10px', marginBottom:'10px'});
+
+          const name = document.createElement('div');
+          name.innerText = r.title; 
+          name.style.fontWeight='600'; name.style.marginBottom='5px';
+
+          const writer = document.createElement('div');
+          writer.innerText = r.writer; writer.style.fontSize='14px'; writer.style.color='#555';
+
+          card.appendChild(img); 
+          card.appendChild(name); 
+          card.appendChild(writer);
+
+          // 클릭 시 content-preview로 이동
+          card.addEventListener('click', () => {
+            const params = new URLSearchParams({
+              id: r.id,
+              name: r.title,
+              writer: r.writer,
+              cover: r.img,
+              tags: r.tags,
+              chapters: r.chapters,
+              type: r.type
+            });
+            window.location.href = `content-preview/index.html?${params.toString()}`;
+          });
+
+          grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+      }
+
+      document.querySelector('.content').appendChild(container);
+    }
+
+    // 로고 클릭 시 원래 화면 복원
+    logo.addEventListener('click', () => {
+      const existing = document.querySelector('.search-results-container');
+      if(existing) existing.remove();
+      mainContent.style.display='';
+      sidebar.style.display='';
+      searchInput.value='';
     });
   </script>
 </body>
